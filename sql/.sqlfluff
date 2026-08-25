@@ -1,0 +1,6 @@
+[sqlfluff]
+dialect = postgres
+
+[sqlfluff:layout:type:data_type]
+spacing_before = align
+align_within = create_table_statement

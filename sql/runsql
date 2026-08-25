@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Load a problem's schema and run its solution, inside the postgres container.
+#
+#   ./runsql 1757
+#   ./runsql 1757_recyclable_and_low_fat_products
+#
+# Exits non-zero if either file fails, so this is safe to use as a test loop.
+
+set -euo pipefail
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ $# -ne 1 ]; then
+    echo "usage: runsql <leetcode-number|folder-name>" >&2
+    exit 2
+fi
+
+# Accept either the full folder name or just the leading problem number.
+if [ -d "$here/$1" ]; then
+    problem="$1"
+else
+    matches=("$here/$1"_*/)
+    if [ ! -d "${matches[0]}" ]; then
+        echo "runsql: no problem folder matching '$1'" >&2
+        exit 2
+    elif [ "${#matches[@]}" -gt 1 ]; then
+        echo "runsql: '$1' is ambiguous:" >&2
+        for m in "${matches[@]}"; do echo "  $(basename "$m")" >&2; done
+        exit 2
+    fi
+    problem="$(basename "${matches[0]}")"
+fi
+
+for f in create.sql solution.sql; do
+    if [ ! -f "$here/$problem/$f" ]; then
+        echo "runsql: $problem/$f not found" >&2
+        exit 2
+    fi
+done
+
+run() {
+    docker compose -f "$here/compose.yaml" exec -T db \
+        psql -U leetcode -d leetcode -v ON_ERROR_STOP=1 -f "/sql/$problem/$1"
+}
+
+echo "== $problem/create.sql"
+run create.sql
+
+echo "== $problem/solution.sql"
+run solution.sql
