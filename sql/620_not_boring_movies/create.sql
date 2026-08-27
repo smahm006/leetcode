@@ -1,0 +1,17 @@
+\ir ../drop_all_tables.sql
+
+create table cinema
+(
+    id          int primary key,
+    movie       varchar,
+    description varchar,
+    rating      float
+);
+
+insert into cinema
+values
+(1, 'War', 'great 3D', 8.9),
+(2, 'Science', 'fiction', 8.5),
+(3, 'irish', 'boring', 6.2),
+(4, 'Ice song', 'Fantacy', 8.6),
+(5, 'House card', 'Interesting', 9.1);
